@@ -1,0 +1,66 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://openrepos.io/schema/domain.schema.json",
+  "title": "OpenRepos subdomain claim",
+  "description": "A single subdomain claim filed as a pull request against OpenRepos-Register.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["subdomain", "domain", "owner", "project", "target"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "subdomain": {
+      "type": "string",
+      "pattern": "^[a-z0-9](?:[a-z0-9-]{1,61}[a-z0-9])$",
+      "description": "DNS label without the domain suffix, 3-63 characters."
+    },
+    "domain": {
+      "type": "string",
+      "enum": [
+        "openrepos.io",
+        "openrepos.org",
+        "openrepos.sh",
+        "repos.one",
+        "sourcepage.io",
+        "sourcepage.org",
+        "sourcepage.sh"
+      ],
+      "description": "Exactly one of the supported OpenRepos domains. A project may claim under only one domain."
+    },
+    "owner": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["github"],
+      "properties": {
+        "github": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9](?:[a-zA-Z0-9]|-(?=[a-zA-Z0-9])){0,38}$",
+          "description": "GitHub username that owns the project repository."
+        }
+      }
+    },
+    "project": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["repo"],
+      "properties": {
+        "name": { "type": "string", "minLength": 1, "maxLength": 100 },
+        "repo": {
+          "type": "string",
+          "format": "uri",
+          "pattern": "^https://github\\.com/",
+          "description": "Public GitHub repository of the open source project."
+        }
+      }
+    },
+    "target": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "value"],
+      "properties": {
+        "type": { "type": "string", "enum": ["CNAME"] },
+        "value": { "type": "string", "format": "hostname" }
+      }
+    },
+    "description": { "type": "string", "maxLength": 200 }
+  }
+}

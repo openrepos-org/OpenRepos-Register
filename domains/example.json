@@ -1,0 +1,11 @@
+{
+  "$schema": "../schema/domain.schema.json",
+  "subdomain": "example",
+  "domain": "openrepos.io",
+  "owner": { "github": "octocat" },
+  "project": {
+    "name": "Example Project",
+    "repo": "https://github.com/octocat/example"
+  },
+  "target": { "type": "CNAME", "value": "octocat.github.io" }
+}
