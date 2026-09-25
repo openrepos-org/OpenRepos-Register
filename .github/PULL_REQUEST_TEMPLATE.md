@@ -23,4 +23,10 @@
 - [ ] The project is open source (public repository with a LICENSE).
 - [ ] The target host is already configured to serve my project.
 - [ ] The target is on the allowed provider list, or I added it to `targets.json#custom` with a reason.
+- [ ] I added the OpenRepos badge to the project README (see "Add the badge" in the README), e.g.:
+
+  ```markdown
+  [![OpenRepos](https://img.shields.io/endpoint?url=https://openrepos.org/status/your-project.openrepos.org.json&style=flat-square)](https://your-project.openrepos.org/)
+  ```
+
 - [ ] This project is not claimed on any other OpenRepos domain.

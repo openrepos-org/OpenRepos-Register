@@ -16,6 +16,9 @@ import path from "node:path";
 import { domains, isAllowedTarget, readJson, rootDir } from "./lib.mjs";
 
 const COMMENT = "openrepos-register";
+// 通配符基础设施记录（未 claim 子域名 → Worker 首页重定向，见 ADR-0003）
+const WILDCARD_COMMENT = "openrepos-wildcard";
+const WILDCARD_CONTENT = "192.0.2.1";
 const args = process.argv.slice(2);
 const dryRun = args.includes("--dry-run");
 const prune = args.includes("--prune");
@@ -111,6 +114,44 @@ for (const domain of domains) {
         });
       }
     }
+  }
+
+  // 通配符基础设施：确保 *.<domain> 存在且代理开启（未 claim 子域名落到 Worker）
+  const wildcardName = `*.${domain}`;
+  const wildcard = records.find((record) => record.name === wildcardName);
+  if (!wildcard) {
+    changes.push(`+ ${wildcardName} → ${WILDCARD_CONTENT} (proxied, wildcard)`);
+    if (!dryRun) {
+      await cloudflare(`/zones/${zoneId}/dns_records`, {
+        method: "POST",
+        body: JSON.stringify({
+          type: "A",
+          name: wildcardName,
+          content: WILDCARD_CONTENT,
+          proxied: true,
+          ttl: 1,
+          comment: WILDCARD_COMMENT,
+        }),
+      });
+    }
+  } else if (wildcard.comment === WILDCARD_COMMENT) {
+    if (wildcard.content !== WILDCARD_CONTENT || wildcard.proxied !== true) {
+      changes.push(`~ ${wildcardName} 修正为 ${WILDCARD_CONTENT} (proxied)`);
+      if (!dryRun) {
+        await cloudflare(`/zones/${zoneId}/dns_records/${wildcard.id}`, {
+          method: "PATCH",
+          body: JSON.stringify({
+            content: WILDCARD_CONTENT,
+            proxied: true,
+            comment: WILDCARD_COMMENT,
+          }),
+        });
+      }
+    }
+  } else {
+    console.log(
+      `::warning::${wildcardName} 已存在且非 OpenRepos 管理（comment 不匹配），已跳过；请人工确认`,
+    );
   }
 
   if (prune) {

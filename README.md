@@ -25,7 +25,9 @@ All claims live in a single file: [`register.json`](./register.json).
 5. Reserved names cannot be claimed — see [`reserved.json`](./reserved.json).
 6. Targets must be one of the allowed hosting providers (see below); custom targets need
    maintainer approval.
-7. You are responsible for the content served under your subdomain. Content rules apply:
+7. **Add the OpenRepos badge to your project README** — it is checked automatically on every
+   new claim (see [Add the badge](#add-the-badge)).
+8. You are responsible for the content served under your subdomain. Content rules apply:
    keep it about your open source project, no automatic redirects away, no NSFW/adult content.
    Abusive subdomains can be removed.
 
@@ -81,6 +83,29 @@ Subdomains may only point at established hosting providers:
 If your project needs a different target, add the exact hostname to the `custom` array in
 [`targets.json`](./targets.json) in the same pull request and explain why. A maintainer will
 review it.
+
+## Add the badge
+
+New claims must include an OpenRepos badge in the project README. The badge is dynamic: it shows
+`pending` while your claim is under review and flips to `live` automatically after merge — no
+README edits needed later.
+
+Pick any [shields.io style](https://shields.io) (`flat`, `flat-square`, `plastic`,
+`for-the-badge`, `social`):
+
+```markdown
+[![OpenRepos](https://img.shields.io/endpoint?url=https://openrepos.org/status/awesome-project.openrepos.org.json&style=flat-square)](https://awesome-project.openrepos.org/)
+```
+
+Replace `openrepos.org` with the domain you claimed, and `awesome-project` with your subdomain.
+
+Static alternative (no dynamic request; note that shields encodes `-` as `--`):
+
+```markdown
+[![OpenRepos](https://img.shields.io/badge/openrepos.org-awesome-project.openrepos.org-blue?style=flat-square)](https://awesome-project.openrepos.org/)
+```
+
+The badge URL must reference your exact subdomain — CI checks for it and rejects claims without it.
 
 ## Content rules
 
