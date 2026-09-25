@@ -16,6 +16,7 @@ import {
   domains,
   eachClaim,
   githubApi,
+  githubRaw,
   isAllowedTarget,
   normalizeRepo,
   readJson,
@@ -155,14 +156,44 @@ async function verifyOwnership(domain, subdomain, claim, token, prAuthor) {
   const repoOwner = String(data.owner?.login ?? "");
   if (prAuthor.toLowerCase() !== repoOwner.toLowerCase()) {
     const membership = await githubApi(`/orgs/${repoOwner}/members/${prAuthor}`, token);
-    if (membership.status === 204) return;
-    if (membership.status === 404) {
+    if (membership.status === 204) {
+      // 组织成员，继续校验 badge
+    } else if (membership.status === 404) {
       error(`${where}：PR 作者「${prAuthor}」不是仓库「${data.full_name}」的所有者或组织成员`);
     } else {
       warn(
         `${where}：无法确认 PR 作者「${prAuthor}」与「${repoOwner}」的组织关系（GitHub API ${membership.status}），请人工确认`,
       );
     }
+  }
+
+  await verifyBadge(domain, subdomain, `${owner}/${repo}`, token);
+}
+
+/**
+ * Badge 卡点（见 docs/PRODUCT-TECH-DESIGN.md 3.5）：
+ * 项目 README 必须包含引用本次 fqdn 的 OpenRepos badge（动态 / 自绘 / 静态 shields 均可）。
+ */
+async function verifyBadge(domain, subdomain, repoFullName, token) {
+  const fqdn = `${subdomain}.${domain}`;
+  const { status, text } = await githubRaw(`/repos/${repoFullName}/readme`, token);
+  if (status !== 200 || !text) {
+    warn(`${fqdn}：无法读取项目 README（GitHub API ${status}），请人工确认 badge 是否放置`);
+    return;
+  }
+  const escape = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  // 静态 shields badge 中连字符会转义为 --，因此允许 1–2 个连字符
+  const fqdnPattern = escape(fqdn).replace(/-/g, "-{1,2}");
+  const patterns = [
+    new RegExp(`openrepos\\.org/status/${escape(fqdn)}\\.json`, "i"),
+    new RegExp(`openrepos\\.org/badge/${escape(fqdn)}\\.svg`, "i"),
+    new RegExp(`img\\.shields\\.io/[^\\s)"'<>]*openrepos[^\\s)"'<>]*${fqdnPattern}`, "i"),
+  ];
+  if (!patterns.some((pattern) => pattern.test(text))) {
+    error(
+      `${fqdn}：项目 README 未找到引用该子域名的 OpenRepos badge` +
+        `（见 register README 的 Add the badge 一节）`,
+    );
   }
 }
 

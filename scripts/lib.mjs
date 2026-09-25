@@ -53,6 +53,19 @@ export function* eachClaim(register) {
   }
 }
 
+/** GitHub raw 内容（如项目 README）；返回 { status, text } */
+export async function githubRaw(pathname, token, accept = "application/vnd.github.raw") {
+  const response = await fetch(`https://api.github.com${pathname}`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+      Accept: accept,
+      "User-Agent": "openrepos-register",
+    },
+  });
+  if (!response.ok) return { status: response.status, text: null };
+  return { status: response.status, text: await response.text() };
+}
+
 /** GitHub API（可选 token；返回 { status, data }） */
 export async function githubApi(pathname, token) {
   const response = await fetch(`https://api.github.com${pathname}`, {
