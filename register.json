@@ -1,7 +1,12 @@
 {
   "$schema": "./schema/register.schema.json",
   "openrepos.io": {},
-  "openrepos.org": {},
+  "openrepos.org": {
+    "kubecell": {
+      "repo": "https://github.com/taosher/KubeCell",
+      "target": "kubecell.pages.dev"
+    }
+  },
   "openrepos.sh": {},
   "repos.one": {},
   "sourcepage.io": {},
