@@ -1,11 +1,12 @@
 #!/usr/bin/env node
-// PR 校验：register.json 合法性与重复校验，并在有 GITHUB_TOKEN 时校验项目归属。
+// PR validation: register.json legality and duplicate checks, plus ownership and badge checks
+// when GITHUB_TOKEN is available.
 //
-// 用法：node scripts/validate.mjs
-// 可选环境变量：
-//   GITHUB_TOKEN     — 用于 GitHub API 归属校验（CI 中为 secrets.GITHUB_TOKEN）
-//   PR_AUTHOR        — PR 作者用户名（github.event.pull_request.user.login）
-//   GITHUB_BASE_REF  — PR 的 base 分支名；用于只校验发生变更的 claim
+// Usage: node scripts/validate.mjs
+// Optional environment variables:
+//   GITHUB_TOKEN     — for GitHub API ownership/badge checks (CI: secrets.GITHUB_TOKEN)
+//   PR_AUTHOR        — pull request author (github.event.pull_request.user.login)
+//   GITHUB_BASE_REF  — PR base branch; only changed claims are checked
 import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import path from "node:path";
@@ -35,26 +36,26 @@ let register;
 try {
   register = JSON.parse(readFileSync(path.join(rootDir, "register.json"), "utf8"));
 } catch (cause) {
-  console.error(`::error file=register.json::register.json 不是合法 JSON：${cause.message}`);
+  console.error(`::error file=register.json::register.json is not valid JSON: ${cause.message}`);
   process.exit(1);
 }
 
-// 1) 顶层结构：恰好 7 个域名 key
+// 1) Top-level structure: exactly the 7 domain keys
 for (const key of Object.keys(register).filter((key) => key !== "$schema")) {
-  if (!domains.includes(key)) error(`未知域名 key「${key}」：顶层只允许 7 个支持域名`);
+  if (!domains.includes(key)) error(`Unknown top-level key "${key}": only the 7 supported domains are allowed`);
 }
 for (const domain of domains) {
   if (!(domain in register)) {
-    error(`缺少域名 key「${domain}」：即使没有 claim 也要保留空对象 {}`);
+    error(`Missing top-level key "${domain}": keep it even without claims (empty object {})`);
     continue;
   }
   const bucket = register[domain];
   if (typeof bucket !== "object" || bucket === null || Array.isArray(bucket)) {
-    error(`域名「${domain}」的值必须是对象`);
+    error(`Value for "${domain}" must be an object`);
   }
 }
 
-// 2) 逐条 claim：命名、保留字、字段、跨域名重复
+// 2) Per-claim checks: naming, reserved names, fields, cross-domain duplicates
 const claims = [];
 const seenRepos = new Map();
 for (const [domain, subdomain, claim] of eachClaim(register)) {
@@ -62,41 +63,40 @@ for (const [domain, subdomain, claim] of eachClaim(register)) {
   claims.push([domain, subdomain, claim]);
 
   if (!SUBDOMAIN_PATTERN.test(subdomain)) {
-    error(`${where}：subdomain 非法（3–63 位，仅 a-z0-9-，不以 - 开头/结尾）`);
+    error(`${where}: invalid subdomain (3–63 chars, a-z0-9- only, no leading/trailing hyphen)`);
   }
-  if (reserved.has(subdomain)) error(`${where}：subdomain「${subdomain}」是保留字`);
+  if (reserved.has(subdomain)) error(`${where}: "${subdomain}" is a reserved name`);
   if (typeof claim !== "object" || claim === null || Array.isArray(claim)) {
-    error(`${where}：claim 必须是对象`);
+    error(`${where}: claim must be an object`);
     continue;
   }
 
   const allowed = new Set(["repo", "target"]);
   for (const field of Object.keys(claim)) {
-    if (!allowed.has(field)) error(`${where}：不支持的字段「${field}」（只允许 repo / target）`);
+    if (!allowed.has(field)) error(`${where}: unsupported field "${field}" (only repo / target)`);
   }
 
   if (typeof claim.repo !== "string" || !/^https:\/\/github\.com\/[^/]+\/[^/]+$/.test(claim.repo)) {
-    error(`${where}：repo 必须是 https://github.com/<owner>/<repo>`);
+    error(`${where}: repo must be https://github.com/<owner>/<repo>`);
   } else {
     const normalized = normalizeRepo(claim.repo);
     if (seenRepos.has(normalized)) {
-      error(`${where}：与 ${seenRepos.get(normalized)} 重复——同一项目只能在一个域名下 claim`);
+      error(`${where}: duplicates ${seenRepos.get(normalized)} — a project may only be claimed on one domain`);
     } else {
       seenRepos.set(normalized, where);
     }
   }
   if (typeof claim.target !== "string" || !TARGET_PATTERN.test(claim.target)) {
-    error(`${where}：target 不是合法主机名`);
+    error(`${where}: target is not a valid hostname`);
   } else if (!isAllowedTarget(claim.target, targets)) {
     error(
-      `${where}：target「${claim.target}」不在托管商白名单内（见 targets.json）；` +
-        `如需自定义目标，请在本 PR 中把该主机加入 targets.json#custom 并说明理由`,
+      `${where}: target "${claim.target}" is not on the hosting-provider allowlist (see targets.json); ` +
+        `for a custom target, add the host to targets.json#custom in this PR with a reason`,
     );
   }
 }
 
-// 3) 归属校验（需要 GITHUB_TOKEN + PR_AUTHOR；只检查相对 base 发生变更的 claim）
-//    owner 字段已移除：归属由「PR 作者是 repo 所有者/组织成员」自动判定。
+// 3) Ownership and badge checks (needs GITHUB_TOKEN + PR_AUTHOR; only changed claims)
 const token = process.env.GITHUB_TOKEN;
 const prAuthor = process.env.PR_AUTHOR ?? "";
 if (token && prAuthor) {
@@ -106,16 +106,16 @@ if (token && prAuthor) {
     return JSON.stringify(base?.[domain]?.[subdomain]) !== JSON.stringify(claim);
   });
   if (changed.length > 30) {
-    warn(`变更 claim 数量为 ${changed.length}（>30），已跳过归属校验，请人工重点复核`);
+    warn(`Changed claim count is ${changed.length} (>30); ownership/badge checks skipped — review manually`);
   } else {
     for (const [domain, subdomain, claim] of changed) {
       await verifyOwnership(domain, subdomain, claim, token, prAuthor);
     }
   }
 } else if (token) {
-  warn("缺少 PR_AUTHOR，跳过归属校验（CI 中由 workflow 提供）");
+  warn("PR_AUTHOR is missing; ownership/badge checks skipped (provided by the workflow in CI)");
 } else {
-  warn("未提供 GITHUB_TOKEN，跳过归属校验（CI 中会自动启用）");
+  warn("GITHUB_TOKEN is missing; ownership/badge checks skipped (enabled automatically in CI)");
 }
 
 function loadBaseRegister() {
@@ -141,28 +141,29 @@ async function verifyOwnership(domain, subdomain, claim, token, prAuthor) {
 
   const { status, data } = await githubApi(`/repos/${owner}/${repo}`, token);
   if (status === 404) {
-    error(`${where}：项目仓库不存在或不可公开访问（${claim.repo}）`);
+    error(`${where}: project repository does not exist or is not publicly accessible (${claim.repo})`);
     return;
   }
   if (status !== 200) {
-    warn(`${where}：无法校验仓库（GitHub API ${status}），请人工确认`);
+    warn(`${where}: cannot verify the repository (GitHub API ${status}); please confirm manually`);
     return;
   }
-  if (data.private) error(`${where}：项目仓库必须是公开仓库`);
-  if (data.archived) error(`${where}：项目仓库已归档`);
-  if (!data.license) error(`${where}：项目仓库缺少 LICENSE（必须是开源项目）`);
+  if (data.private) error(`${where}: project repository must be public`);
+  if (data.archived) error(`${where}: project repository is archived`);
+  if (!data.license) error(`${where}: project repository has no LICENSE (must be open source)`);
 
-  // 归属：PR 作者必须是仓库所有者，或该组织的成员
+  // Ownership: the PR author must be the repository owner or a member of its organization
   const repoOwner = String(data.owner?.login ?? "");
   if (prAuthor.toLowerCase() !== repoOwner.toLowerCase()) {
     const membership = await githubApi(`/orgs/${repoOwner}/members/${prAuthor}`, token);
     if (membership.status === 204) {
-      // 组织成员，继续校验 badge
+      // Organization member; continue to the badge check
     } else if (membership.status === 404) {
-      error(`${where}：PR 作者「${prAuthor}」不是仓库「${data.full_name}」的所有者或组织成员`);
+      error(`${where}: PR author "${prAuthor}" is neither the owner of "${data.full_name}" nor an organization member`);
     } else {
       warn(
-        `${where}：无法确认 PR 作者「${prAuthor}」与「${repoOwner}」的组织关系（GitHub API ${membership.status}），请人工确认`,
+        `${where}: cannot confirm the organization relationship between "${prAuthor}" and "${repoOwner}" ` +
+          `(GitHub API ${membership.status}); please confirm manually`,
       );
     }
   }
@@ -171,18 +172,18 @@ async function verifyOwnership(domain, subdomain, claim, token, prAuthor) {
 }
 
 /**
- * Badge 卡点（见 docs/PRODUCT-TECH-DESIGN.md 3.5）：
- * 项目 README 必须包含引用本次 fqdn 的 OpenRepos badge（动态 / 自绘 / 静态 shields 均可）。
+ * Badge gate (see docs/PRODUCT-TECH-DESIGN.md 3.5): the project README must contain an
+ * OpenRepos badge that references this exact fqdn (dynamic, self-hosted, or static shields).
  */
 async function verifyBadge(domain, subdomain, repoFullName, token) {
   const fqdn = `${subdomain}.${domain}`;
   const { status, text } = await githubRaw(`/repos/${repoFullName}/readme`, token);
   if (status !== 200 || !text) {
-    warn(`${fqdn}：无法读取项目 README（GitHub API ${status}），请人工确认 badge 是否放置`);
+    warn(`${fqdn}: cannot read the project README (GitHub API ${status}); please confirm the badge manually`);
     return;
   }
   const escape = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  // 静态 shields badge 中连字符会转义为 --，因此允许 1–2 个连字符
+  // Static shields badges encode hyphens as --, so allow one or two hyphens
   const fqdnPattern = escape(fqdn).replace(/-/g, "-{1,2}");
   const patterns = [
     new RegExp(`openrepos\\.org/status/${escape(fqdn)}\\.json`, "i"),
@@ -191,8 +192,8 @@ async function verifyBadge(domain, subdomain, repoFullName, token) {
   ];
   if (!patterns.some((pattern) => pattern.test(text))) {
     error(
-      `${fqdn}：项目 README 未找到引用该子域名的 OpenRepos badge` +
-        `（见 register README 的 Add the badge 一节）`,
+      `${fqdn}: project README has no OpenRepos badge referencing this subdomain` +
+        ` (see "Add the badge" in the register README)`,
     );
   }
 }
@@ -201,7 +202,7 @@ for (const message of warnings) console.log(`::warning file=register.json::${mes
 for (const message of errors) console.error(`::error file=register.json::${message}`);
 
 if (errors.length > 0) {
-  console.error(`\n[validate] 校验失败：${errors.length} 个错误、${warnings.length} 个警告。`);
+  console.error(`\n[validate] FAILED: ${errors.length} error(s), ${warnings.length} warning(s).`);
   process.exit(1);
 }
-console.log(`[validate] 校验通过：${claims.length} 条 claim，${warnings.length} 个警告。`);
+console.log(`[validate] OK: ${claims.length} claim(s), ${warnings.length} warning(s).`);

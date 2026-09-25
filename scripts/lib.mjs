@@ -1,4 +1,4 @@
-// 共享常量与工具（register 仓库）。
+// Shared constants and helpers (register repo).
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -13,15 +13,15 @@ export const domains = readJson("domains.json").domains;
 
 export const reserved = new Set(readJson("reserved.json").reserved.map((name) => name.toLowerCase()));
 
-/** subdomain：3–63 位，仅 a-z0-9-，不以 - 开头/结尾（小写） */
+/** subdomain: 3–63 chars, lowercase a-z0-9- only, no leading/trailing hyphen */
 export const SUBDOMAIN_PATTERN = /^[a-z0-9](?:[a-z0-9-]{1,61}[a-z0-9])$/;
 
-/** 主机名（CNAME 目标） */
+/** Hostname (CNAME target) */
 export const TARGET_PATTERN = /^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]*[a-z0-9])?)+$/;
 
 /**
- * 目标主机是否在白名单内（patterns 支持 `*.example.com` 后缀匹配，custom 为精确主机）。
- * 见 targets.json 与 docs/PRODUCT-TECH-DESIGN.md 3.4。
+ * Whether a target host is allowlisted (patterns support `*.example.com` suffix matches;
+ * `custom` holds exact hosts). See targets.json and docs/PRODUCT-TECH-DESIGN.md 3.4.
  */
 export function isAllowedTarget(target, targets) {
   const value = String(target).toLowerCase();
@@ -36,12 +36,12 @@ export function isAllowedTarget(target, targets) {
   });
 }
 
-/** 归一化仓库 URL，用于跨域名唯一性判断 */
+/** Normalize a repository URL for cross-domain uniqueness checks */
 export function normalizeRepo(repo) {
   return repo.trim().toLowerCase().replace(/\.git$/, "").replace(/\/+$/, "");
 }
 
-/** 遍历全部 claim：[domain, subdomain, claim] */
+/** Iterate every claim: [domain, subdomain, claim] */
 export function* eachClaim(register) {
   for (const domain of domains) {
     const bucket = register?.[domain];
@@ -53,7 +53,7 @@ export function* eachClaim(register) {
   }
 }
 
-/** GitHub raw 内容（如项目 README）；返回 { status, text } */
+/** GitHub raw content (e.g. a project README); returns { status, text } */
 export async function githubRaw(pathname, token, accept = "application/vnd.github.raw") {
   const response = await fetch(`https://api.github.com${pathname}`, {
     headers: {
@@ -66,7 +66,7 @@ export async function githubRaw(pathname, token, accept = "application/vnd.githu
   return { status: response.status, text: await response.text() };
 }
 
-/** GitHub API（可选 token；返回 { status, data }） */
+/** GitHub API (optional token; returns { status, data }) */
 export async function githubApi(pathname, token) {
   const response = await fetch(`https://api.github.com${pathname}`, {
     headers: {

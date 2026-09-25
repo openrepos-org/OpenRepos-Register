@@ -1,4 +1,4 @@
-# merge 到 main 后同步 Cloudflare DNS（幂等；删除仅限本服务创建的记录）
+# Sync Cloudflare DNS after merge to main (idempotent; deletes only records this service created)
 name: Sync DNS
 
 on:
