@@ -164,6 +164,11 @@ review it.
 Records can be removed when a project is no longer open source, is abandoned, or is used for
 abuse. To report abuse or request removal, open an issue in this repository.
 
+The full process — content rules, triage, removal, appeals — and the reserved-name policy are
+documented at **https://openrepos.org/abuse**. Reserved names (see
+[`reserved.json`](./reserved.json)) protect infrastructure and prevent impersonation; releases
+are reviewed case by case.
+
 ## Repository layout
 
 ```

@@ -168,6 +168,11 @@ revisará.
 Los registros pueden eliminarse cuando un proyecto deja de ser de código abierto, queda abandonado
 o se usa para abuso. Para reportar abuso o pedir una eliminación, abre un issue en este repositorio.
 
+El proceso completo — reglas de contenido, revisión, eliminación y apelaciones — y la política de
+nombres reservados están en **https://openrepos.org/abuse**. Los nombres reservados (ver
+[`reserved.json`](./reserved.json)) protegen la infraestructura y evitan suplantaciones; las
+solicitudes se revisan caso por caso.
+
 ## Estructura del repositorio
 
 ```

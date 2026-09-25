@@ -167,6 +167,11 @@ revisar.
 Registros podem ser removidos quando um projeto deixa de ser de código aberto, é abandonado ou é
 usado para abuso. Para reportar abuso ou pedir remoção, abra uma issue neste repositório.
 
+O processo completo — regras de conteúdo, triagem, remoção e recursos — e a política de nomes
+reservados estão em **https://openrepos.org/abuse**. Nomes reservados (veja
+[`reserved.json`](./reserved.json)) protegem a infraestrutura e evitam impersonação; pedidos são
+avaliados caso a caso.
+
 ## Estrutura do repositório
 
 ```
