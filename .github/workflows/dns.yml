@@ -1,0 +1,35 @@
+# merge 到 main 后同步 Cloudflare DNS（幂等；删除仅限本服务创建的记录）
+name: Sync DNS
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - register.json
+      - scripts/**
+      - .github/workflows/dns.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: dns-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Sync DNS records
+        run: node scripts/sync-dns.mjs --prune
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}

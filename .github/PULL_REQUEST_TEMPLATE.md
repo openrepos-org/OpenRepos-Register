@@ -1,26 +1,26 @@
 # Subdomain claim
 
 <!--
-  One project, one subdomain, one domain. Replace the example below before opening this PR.
-  CI checks the schema, naming rules, availability, ownership, and the one-domain-per-project rule.
+  One project, one subdomain, one domain. Replace the example below with your claim.
+  CI checks the entry (naming, reserved names, duplicates, ownership) before review.
 -->
-
-## Checklist
-
-- [ ] I am the owner or a member of the project repository linked below.
-- [ ] This project is open source (public repository with an open source license).
-- [ ] I claim a subdomain on exactly one OpenRepos domain, and this project does not already
-      have a claim on any other OpenRepos domain.
-- [ ] The target host is configured to serve my project.
 
 ## Claim
 
 ```json
-{
-  "subdomain": "example",
-  "domain": "openrepos.io",
-  "owner": { "github": "octocat" },
-  "project": { "name": "Example Project", "repo": "https://github.com/octocat/example" },
-  "target": { "type": "CNAME", "value": "octocat.github.io" }
+"openrepos.io": {
+  "your-project": {
+    "owner": "your-github-username",
+    "repo": "https://github.com/you/your-project",
+    "target": "you.github.io"
+  }
 }
 ```
+
+## Checklist
+
+- [ ] I edited `register.json` and added exactly one claim under **one** domain.
+- [ ] I own the project repository or am a member of its organization.
+- [ ] The project is open source (public repository with a LICENSE).
+- [ ] The target host is already configured to serve my project.
+- [ ] This project is not claimed on any other OpenRepos domain.

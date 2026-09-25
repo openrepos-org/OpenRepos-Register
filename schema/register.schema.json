@@ -1,0 +1,68 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://openrepos.org/schema/register.schema.json",
+  "title": "OpenRepos register",
+  "description": "All subdomain claims, keyed by supported domain and then by subdomain.",
+  "type": "object",
+  "required": [
+    "openrepos.io",
+    "openrepos.org",
+    "openrepos.sh",
+    "repos.one",
+    "sourcepage.io",
+    "sourcepage.org",
+    "sourcepage.sh"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": { "type": "string" },
+    "openrepos.io": { "$ref": "#/$defs/domain" },
+    "openrepos.org": { "$ref": "#/$defs/domain" },
+    "openrepos.sh": { "$ref": "#/$defs/domain" },
+    "repos.one": { "$ref": "#/$defs/domain" },
+    "sourcepage.io": { "$ref": "#/$defs/domain" },
+    "sourcepage.org": { "$ref": "#/$defs/domain" },
+    "sourcepage.sh": { "$ref": "#/$defs/domain" }
+  },
+  "$defs": {
+    "domain": {
+      "type": "object",
+      "description": "Claims under this domain, keyed by subdomain.",
+      "patternProperties": {
+        "^[a-z0-9](?:[a-z0-9-]{1,61}[a-z0-9])$": { "$ref": "#/$defs/claim" }
+      },
+      "additionalProperties": false
+    },
+    "claim": {
+      "type": "object",
+      "required": ["owner", "repo", "target"],
+      "additionalProperties": false,
+      "properties": {
+        "owner": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9](?:[a-zA-Z0-9]|-(?=[a-zA-Z0-9])){0,38}$",
+          "description": "GitHub username of the project owner."
+        },
+        "repo": {
+          "type": "string",
+          "pattern": "^https://github\\.com/[^/]+/[^/]+$",
+          "description": "Public GitHub repository of the open source project."
+        },
+        "target": {
+          "type": "string",
+          "pattern": "^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?(?:\\.[a-z0-9](?:[a-z0-9-]*[a-z0-9])?)+$",
+          "description": "CNAME target hostname, e.g. octocat.github.io."
+        },
+        "description": {
+          "type": "string",
+          "maxLength": 200
+        },
+        "proxied": {
+          "type": "boolean",
+          "default": false,
+          "description": "Route through the Cloudflare proxy. Default false so the target host serves TLS."
+        }
+      }
+    }
+  }
+}
