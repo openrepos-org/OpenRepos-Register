@@ -131,9 +131,11 @@ revisar.
 - As mudanças geralmente propagam em um minuto. O registro é DNS-only, então o seu provedor
   fornece o HTTPS.
 - **Configure o domínio personalizado no provedor**, senão o subdomínio mostrará erro:
-  - **GitHub Pages**: Settings do repositório → Pages → Custom domain → adicione o subdomínio
-  - **Cloudflare Pages**: projeto → Custom domains → adicione o subdomínio
-  - **Vercel / Netlify**: adicione o domínio ao projeto
+  - **GitHub Pages**: Settings do repositório → Pages → Custom domain → adicione o subdomínio e ative **Enforce HTTPS**
+  - **Cloudflare Pages**: projeto → Custom domains → adicione o subdomínio (ou use `POST /accounts/{account_id}/pages/projects/{project}/domains`); o Pages responde `522` até ser adicionado
+  - **Vercel / Netlify**: adicione o domínio nas configurações do projeto; podem pedir um registro TXT de verificação, que este serviço ainda não suporta
+  - **GitLab Pages**: adicione o domínio nas configurações de Pages, mas o GitLab exige um registro TXT de verificação (ainda não suportado), então hoje não é possível publicar
+  - **Surge / GitBook / Alwaysdata**: adicione o domínio personalizado no painel do provedor; nenhum registro extra é necessário
 - Um erro de TLS ou `522` geralmente significa que o domínio personalizado ainda não foi
   adicionado no provedor.
 

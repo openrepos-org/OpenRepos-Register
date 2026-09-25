@@ -129,9 +129,11 @@ review it.
   serves HTTPS.
 - **Configure the custom domain at your host** before or right after merge, otherwise the
   subdomain will show an error:
-  - **GitHub Pages**: repository Settings → Pages → Custom domain → add your subdomain
-  - **Cloudflare Pages**: project → Custom domains → add your subdomain
-  - **Vercel / Netlify**: add the domain to the project
+  - **GitHub Pages**: repository Settings → Pages → Custom domain → add your subdomain, then enable **Enforce HTTPS**
+  - **Cloudflare Pages**: project → Custom domains → add your subdomain (or call `POST /accounts/{account_id}/pages/projects/{project}/domains`); Pages answers `522` until it is added
+  - **Vercel / Netlify**: add the domain in the project settings; these may ask for a TXT verification record, which this service does not support yet
+  - **GitLab Pages**: add the domain in the project Pages settings, but GitLab requires a TXT verification record — not supported yet, so GitLab Pages cannot go live today
+  - **Surge / GitBook / Alwaysdata**: add the custom domain in the provider dashboard; no extra records needed
 - A TLS error or a `522` usually means the custom domain has not been added at the host yet.
 
 ## Removal and abuse

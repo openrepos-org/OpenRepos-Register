@@ -122,9 +122,11 @@
   (بوسم `openrepos-register`).
 - تنتشر التغييرات عادةً خلال دقيقة. السجل DNS-only، لذا يقدّم مزوّد الاستضافة HTTPS.
 - **اضبط النطاق المخصّص لدى مزوّد الاستضافة** وإلا سيظهر خطأ:
-  - **GitHub Pages**: إعدادات المستودع → Pages → Custom domain → أضف النطاق الفرعي
-  - **Cloudflare Pages**: المشروع → Custom domains → أضف النطاق الفرعي
-  - **Vercel / Netlify**: أضف النطاق إلى المشروع
+  - **GitHub Pages**: إعدادات المستودع → Pages → Custom domain → أضف النطاق الفرعي ثم فعّل **Enforce HTTPS**
+  - **Cloudflare Pages**: المشروع → Custom domains → أضف النطاق الفرعي (أو عبر API `POST /accounts/{account_id}/pages/projects/{project}/domains`)؛ سيعيد `522` حتى إضافته
+  - **Vercel / Netlify**: أضف النطاق في إعدادات المشروع؛ قد يطلبان سجل TXT للتحقق، وهو غير مدعوم حاليًا
+  - **GitLab Pages**: أضف النطاق في إعدادات Pages، لكن GitLab يتطلب سجل TXT للتحقق (غير مدعوم حاليًا)، لذا لا يمكن النشر عليه الآن
+  - **Surge / GitBook / Alwaysdata**: أضف النطاق المخصّص من لوحة المزوّد؛ لا حاجة لسجلات إضافية
 - خطأ TLS أو الرمز `522` يعني عادةً أن النطاق المخصّص لم يُضف لدى المزوّد بعد.
 
 ## الإزالة والإساءة

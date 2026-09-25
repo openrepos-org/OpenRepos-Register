@@ -117,9 +117,11 @@
   （标记为 `openrepos-register`）。
 - 通常一分钟内生效。记录为 DNS-only，因此由你的托管商提供 HTTPS。
 - **请在你的托管平台配置自定义域名**，否则访问会报错：
-  - **GitHub Pages**：仓库 Settings → Pages → Custom domain → 填入子域名
-  - **Cloudflare Pages**：项目 → Custom domains → 添加子域名
-  - **Vercel / Netlify**：在项目中添加该域名
+  - **GitHub Pages**：仓库 Settings → Pages → Custom domain → 填入子域名，然后启用 **Enforce HTTPS**
+  - **Cloudflare Pages**：项目 → Custom domains → 添加子域名（或调用 API `POST /accounts/{account_id}/pages/projects/{project}/domains`）；未绑定前会返回 `522`
+  - **Vercel / Netlify**：在项目设置中添加该域名；平台可能要求 TXT 校验记录，目前本服务不支持
+  - **GitLab Pages**：在项目的 Pages 设置中添加域名，但 GitLab 要求 TXT 校验记录（暂不支持），因此目前无法上线
+  - **Surge / GitBook / Alwaysdata**：在平台后台添加自定义域名即可，无需额外记录
 - 出现 TLS 错误或 `522`，通常表示托管平台还没有绑定该自定义域名。
 
 ## 移除与滥用

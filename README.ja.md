@@ -125,9 +125,11 @@ OpenRepos のドメイン上で、あなたのオープンソースプロジェ�
   （コメント `openrepos-register` 付き）。
 - 通常 1 分以内に反映されます。DNS-only のため、HTTPS はホスティング事業者が提供します。
 - **ホスティング側でカスタムドメインを設定してください**。設定しないとエラーになります：
-  - **GitHub Pages**：リポジトリの Settings → Pages → Custom domain にサブドメインを入力
-  - **Cloudflare Pages**：プロジェクト → Custom domains → サブドメインを追加
-  - **Vercel / Netlify**：プロジェクトにドメインを追加
+  - **GitHub Pages**：リポジトリの Settings → Pages → Custom domain にサブドメインを入力し、**Enforce HTTPS** を有効化
+  - **Cloudflare Pages**：プロジェクト → Custom domains → サブドメインを追加（API `POST /accounts/{account_id}/pages/projects/{project}/domains` でも可）。追加するまで `522` を返します
+  - **Vercel / Netlify**：プロジェクト設定でドメインを追加。TXT 検証レコードを求められる場合がありますが、本サービスは未対応です
+  - **GitLab Pages**：プロジェクトの Pages 設定でドメインを追加しますが、GitLab は TXT 検証レコードを要求するため、現時点では公開できません
+  - **Surge / GitBook / Alwaysdata**：各ダッシュボードでカスタムドメインを追加（追加レコードは不要）
 - TLS エラーや `522` は、ホスティング側にカスタムドメインが未設定の場合に起こります。
 
 ## 削除と不正利用
