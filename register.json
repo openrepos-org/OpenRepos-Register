@@ -8,7 +8,12 @@
     }
   },
   "openrepos.sh": {},
-  "repos.one": {},
+  "repos.one": {
+    "kite-gate-test": {
+      "repo": "https://github.com/taosher/kite",
+      "target": "taosher.github.io"
+    }
+  },
   "sourcepage.io": {},
   "sourcepage.org": {},
   "sourcepage.sh": {}
