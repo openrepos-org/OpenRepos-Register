@@ -1,8 +1,4 @@
-<p align="center">
-  <img src="./assets/logo.svg" width="56" height="56" alt="OpenRepos logo" />
-</p>
-
-# OpenRepos Register
+# <img src="./assets/logo.svg" width="32" height="32" align="middle" alt="OpenRepos logo" /> OpenRepos Register
 
 [English](./README.md) · [简体中文](./README.zh-CN.md) · [日本語](./README.ja.md) · **العربية** · [Español](./README.es.md) · [Português](./README.pt.md)
 
