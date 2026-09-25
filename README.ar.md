@@ -5,8 +5,7 @@
 احصل على **نطاق فرعي مجاني لمشروعك مفتوح المصدر** على أحد نطاقات OpenRepos.
 مجاني للأبد، وتُدار النطاقات على المدى الطويل بعناية.
 
-- الموقع: **https://openrepos.org/** (أيضًا على `openrepos.io` و`openrepos.sh` و`repos.one`
-  و`sourcepage.io` و`sourcepage.org` و`sourcepage.sh`)
+- الموقع: **https://openrepos.org/** — تُعيد النطاقات الستة الأخرى التوجيه إلى هذا الموقع
 - جميع الطلبات في ملف واحد: [`register.json`](./register.json)
 - مثال: `awesome-project.openrepos.org` ← موقع مشروعك
 
@@ -83,7 +82,7 @@
 [![OpenRepos](https://img.shields.io/endpoint?url=https://openrepos.org/status/awesome-project.openrepos.org.json&style=flat-square)](https://awesome-project.openrepos.org/)
 ```
 
-استبدل `openrepos.org` بالنطاق الذي حجزته، و`awesome-project` بنطاقك الفرعي.
+يستخدم رابط الحالة دائمًا `openrepos.org`؛ استبدل `awesome-project` بنطاقك الفرعي، واستخدم النطاق الذي حجزته في الرابط.
 
 بديل ثابت (بدون طلب ديناميكي؛ لاحظ أن shields يرمّز `-` كـ `--`):
 

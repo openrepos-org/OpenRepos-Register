@@ -4,8 +4,7 @@
 
 为你的开源项目在 OpenRepos 的域名下申请一个**免费二级域名**。永久免费，域名长期妥善管理。
 
-- 官网：**https://openrepos.org/**（同时支持 `openrepos.io`、`openrepos.sh`、`repos.one`、
-  `sourcepage.io`、`sourcepage.org`、`sourcepage.sh`）
+- 官网：**https://openrepos.org/**——其余 6 个域名会重定向到这里
 - 所有申请都保存在同一个文件：[`register.json`](./register.json)
 - 示例：`awesome-project.openrepos.org` → 你的项目站点
 
@@ -78,7 +77,7 @@
 [![OpenRepos](https://img.shields.io/endpoint?url=https://openrepos.org/status/awesome-project.openrepos.org.json&style=flat-square)](https://awesome-project.openrepos.org/)
 ```
 
-把 `openrepos.org` 替换为你申请的域名，把 `awesome-project` 替换为你的子域名。
+状态 URL 始终使用 `openrepos.org`；把 `awesome-project` 替换为你的子域名，链接中使用你申请的域名。
 
 静态备选（不发起动态请求；注意 shields 会把 `-` 转义为 `--`）：
 

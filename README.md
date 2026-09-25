@@ -5,8 +5,7 @@
 Claim a **free subdomain for your open source project** on one of the OpenRepos domains.
 Free forever, and the domains are managed for the long term.
 
-- Website: **https://openrepos.org/** (also on `openrepos.io`, `openrepos.sh`, `repos.one`,
-  `sourcepage.io`, `sourcepage.org`, `sourcepage.sh`)
+- Website: **https://openrepos.org/** — the other six domains redirect there
 - All claims live in one file: [`register.json`](./register.json)
 - Example: `awesome-project.openrepos.org` → your project's site
 
@@ -87,7 +86,7 @@ Pick any [shields.io style](https://shields.io) (`flat`, `flat-square`, `plastic
 [![OpenRepos](https://img.shields.io/endpoint?url=https://openrepos.org/status/awesome-project.openrepos.org.json&style=flat-square)](https://awesome-project.openrepos.org/)
 ```
 
-Replace `openrepos.org` with the domain you claimed, and `awesome-project` with your subdomain.
+The status URL always uses `openrepos.org`; replace `awesome-project` with your subdomain, and use the domain you claimed in the link.
 
 Static alternative (no dynamic request; note that shields encodes `-` as `--`):
 

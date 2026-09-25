@@ -5,8 +5,7 @@
 OpenRepos のドメイン上で、あなたのオープンソースプロジェクト用の**無料サブドメイン**を取得できます。
 永久無料で、ドメインは長期的に適切に管理されます。
 
-- ウェブサイト：**https://openrepos.org/**（`openrepos.io`、`openrepos.sh`、`repos.one`、
-  `sourcepage.io`、`sourcepage.org`、`sourcepage.sh` でも利用可能）
+- ウェブサイト：**https://openrepos.org/** — 他の 6 ドメインはここにリダイレクトされます
 - すべての申請は 1 つのファイル [`register.json`](./register.json) に保存されます
 - 例：`awesome-project.openrepos.org` → あなたのプロジェクトのサイト
 
@@ -85,7 +84,7 @@ OpenRepos のドメイン上で、あなたのオープンソースプロジェ�
 [![OpenRepos](https://img.shields.io/endpoint?url=https://openrepos.org/status/awesome-project.openrepos.org.json&style=flat-square)](https://awesome-project.openrepos.org/)
 ```
 
-`openrepos.org` は取得するドメイン、`awesome-project` はあなたのサブドメインに置き換えてください。
+ステータス URL は常に `openrepos.org` です。`awesome-project` をサブドメインに置き換え、リンクには取得したドメインを使ってください。
 
 静的版（動的リクエストなし。shields では `-` が `--` にエスケープされます）：
 

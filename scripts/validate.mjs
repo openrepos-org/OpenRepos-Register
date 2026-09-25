@@ -185,9 +185,11 @@ async function verifyBadge(domain, subdomain, repoFullName, token) {
   const escape = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   // Static shields badges encode hyphens as --, so allow one or two hyphens
   const fqdnPattern = escape(fqdn).replace(/-/g, "-{1,2}");
+  // Status URLs normally live on the primary domain, but any supported apex is accepted
+  const statusHosts = domains.map((domain) => escape(domain)).join("|");
   const patterns = [
-    new RegExp(`openrepos\\.org/status/${escape(fqdn)}\\.json`, "i"),
-    new RegExp(`openrepos\\.org/badge/${escape(fqdn)}\\.svg`, "i"),
+    new RegExp(`(?:${statusHosts})/status/${escape(fqdn)}\\.json`, "i"),
+    new RegExp(`(?:${statusHosts})/badge/${escape(fqdn)}\\.svg`, "i"),
     new RegExp(`img\\.shields\\.io/[^\\s)"'<>]*openrepos[^\\s)"'<>]*${fqdnPattern}`, "i"),
   ];
   if (!patterns.some((pattern) => pattern.test(text))) {

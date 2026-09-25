@@ -5,8 +5,7 @@
 Consigue un **subdominio gratuito para tu proyecto de código abierto** en uno de los dominios
 de OpenRepos. Gratis para siempre y con una gestión cuidadosa a largo plazo.
 
-- Sitio web: **https://openrepos.org/** (también en `openrepos.io`, `openrepos.sh`, `repos.one`,
-  `sourcepage.io`, `sourcepage.org`, `sourcepage.sh`)
+- Sitio web: **https://openrepos.org/** — los otros seis dominios redirigen aquí
 - Todas las solicitudes viven en un solo archivo: [`register.json`](./register.json)
 - Ejemplo: `awesome-project.openrepos.org` → el sitio de tu proyecto
 
@@ -89,7 +88,7 @@ Elige cualquier [estilo de shields.io](https://shields.io) (`flat`, `flat-square
 [![OpenRepos](https://img.shields.io/endpoint?url=https://openrepos.org/status/awesome-project.openrepos.org.json&style=flat-square)](https://awesome-project.openrepos.org/)
 ```
 
-Sustituye `openrepos.org` por el dominio que reclamaste y `awesome-project` por tu subdominio.
+La URL de estado siempre usa `openrepos.org`; sustituye `awesome-project` por tu subdominio y usa el dominio que reclamaste en el enlace.
 
 Alternativa estática (sin petición dinámica; ten en cuenta que shields codifica `-` como `--`):
 
