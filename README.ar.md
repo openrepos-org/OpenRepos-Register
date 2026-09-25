@@ -60,15 +60,37 @@
 
 ## الحقول
 
-النطاق الفرعي هو المفتاح، وكل مدخل يحتاج حقلين فقط:
+النطاق الفرعي هو المفتاح، ولكل مدخل هذه الحقول:
 
 | الحقل    | مطلوب | الوصف                                                |
 | -------- | ----- | ---------------------------------------------------- |
 | `repo`   | نعم   | مستودع GitHub العام لمشروعك مفتوح المصدر             |
 | `target` | نعم   | مضيف CNAME الهدف، مثل `octocat.github.io`            |
+| `txt`    | لا    | سجل TXT للتحقق من المزوّد (انظر أدناه)               |
 
 تُتحقق الملكية من مؤلف طلب السحب، لذا لا يوجد حقل `owner`. السجلات DNS-only، ويتولى مزوّد
 الاستضافة شهادة TLS.
+
+### التحقق من المزوّد (TXT)
+
+تتطلب بعض المزوّدين سجل TXT قبل تقديم نطاقك المخصّص. انسخ القيم من لوحة المزوّد وأضفها إلى
+المدخل:
+
+```json
+"awesome-project": {
+  "repo": "https://github.com/octocat/awesome-project",
+  "target": "octocat.gitlab.io",
+  "txt": {
+    "name": "_gitlab-pages-verification-code",
+    "value": "gitlab-pages-verification-code=abc123"
+  }
+}
+```
+
+- `name` هو التسمية التي يعطيها المزوّد (يجب أن تبدأ بـ `_`)؛ يُنشأ السجل بالشكل
+  `<name>.<نطاقك-الفرعي>.<النطاق>` TXT.
+- `value` هو القيمة نفسها التي يعطيها المزوّد (1–255 حرفًا ASCII قابلًا للطباعة).
+- يُنشأ تلقائيًا بعد الدمج، ويُزال عند حذف حقل `txt`.
 
 ## إضافة الشارة
 
@@ -96,16 +118,16 @@
 
 يمكن توجيه النطاقات الفرعية إلى مزوّدي الاستضافة التاليين فقط:
 
-| النمط                              | المزوّد          |
-| ---------------------------------- | ---------------- |
-| `*.github.io`                      | GitHub Pages     |
-| `*.gitlab.io`                      | GitLab Pages     |
-| `*.pages.dev`                      | Cloudflare Pages |
-| `*.netlify.app`                    | Netlify          |
-| `*.vercel.app`, `*.vercel-dns.com` | Vercel           |
-| `*.surge.sh`                       | Surge            |
-| `*.gitbook.io`, `*.gitbook.com`    | GitBook          |
-| `*.alwaysdata.net`                 | Alwaysdata       |
+| النمط                              | المزوّد          | التحقق من النطاق     |
+| ---------------------------------- | ---------------- | -------------------- |
+| `*.github.io`                      | GitHub Pages     | لا يحتاج             |
+| `*.gitlab.io`                      | GitLab Pages     | **TXT مطلوب**        |
+| `*.pages.dev`                      | Cloudflare Pages | لا يحتاج             |
+| `*.netlify.app`                    | Netlify          | TXT مطلوب أحيانًا    |
+| `*.vercel.app`, `*.vercel-dns.com` | Vercel           | TXT مطلوب أحيانًا    |
+| `*.surge.sh`                       | Surge            | لا يحتاج             |
+| `*.gitbook.io`, `*.gitbook.com`    | GitBook          | لا يحتاج             |
+| `*.alwaysdata.net`                 | Alwaysdata       | لا يحتاج             |
 
 إذا احتاج مشروعك هدفًا مختلفًا، أضف اسم المضيف بالضبط إلى مصفوفة `custom` في
 [`targets.json`](./targets.json) في نفس طلب السحب مع ذكر السبب، وسيراجعه المشرف.
@@ -118,14 +140,14 @@
 
 ## ما يحدث بعد الدمج
 
-- ينشئ GitHub Action سجل CNAME أو يحدّثه: `<subdomain>.<domain> → <target>`
-  (بوسم `openrepos-register`).
-- تنتشر التغييرات عادةً خلال دقيقة. السجل DNS-only، لذا يقدّم مزوّد الاستضافة HTTPS.
+- ينشئ GitHub Action سجل CNAME أو يحدّثه: `<subdomain>.<domain> → <target>`، وإن كان في مدخلك
+  حقل `txt` فينشئ سجل TXT المقابل أيضًا (بوسم `openrepos-register`).
+- تنتشر التغييرات عادةً خلال دقيقة. السجلات DNS-only، لذا يقدّم مزوّد الاستضافة HTTPS.
 - **اضبط النطاق المخصّص لدى مزوّد الاستضافة** وإلا سيظهر خطأ:
   - **GitHub Pages**: إعدادات المستودع → Pages → Custom domain → أضف النطاق الفرعي ثم فعّل **Enforce HTTPS**
   - **Cloudflare Pages**: المشروع → Custom domains → أضف النطاق الفرعي (أو عبر API `POST /accounts/{account_id}/pages/projects/{project}/domains`)؛ سيعيد `522` حتى إضافته
-  - **Vercel / Netlify**: أضف النطاق في إعدادات المشروع؛ قد يطلبان سجل TXT للتحقق، وهو غير مدعوم حاليًا
-  - **GitLab Pages**: أضف النطاق في إعدادات Pages، لكن GitLab يتطلب سجل TXT للتحقق (غير مدعوم حاليًا)، لذا لا يمكن النشر عليه الآن
+  - **Vercel / Netlify**: أضف النطاق في إعدادات المشروع؛ وإذا طلب المزوّد التحقق عبر TXT فانسخ اسمه وقيمته إلى حقل `txt` في مدخلك
+  - **GitLab Pages**: أضف النطاق في إعدادات Pages؛ يعرض GitLab سجل TXT (اسمه `_gitlab-pages-verification-code`) — انسخه إلى حقل `txt` في مدخلك
   - **Surge / GitBook / Alwaysdata**: أضف النطاق المخصّص من لوحة المزوّد؛ لا حاجة لسجلات إضافية
 - خطأ TLS أو الرمز `522` يعني عادةً أن النطاق المخصّص لم يُضف لدى المزوّد بعد.
 

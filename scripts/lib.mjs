@@ -20,6 +20,16 @@ export const SUBDOMAIN_PATTERN = /^[a-z0-9](?:[a-z0-9-]{1,61}[a-z0-9])$/;
 export const TARGET_PATTERN = /^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]*[a-z0-9])?)+$/;
 
 /**
+ * Optional provider verification TXT record (see docs/PRODUCT-TECH-DESIGN.md 3.2).
+ * The name must start with `_` so a claim can never take over the bare hostname's TXT
+ * semantics (SPF/DKIM/DMARC); it is one label relative to the claimed fqdn.
+ */
+export const TXT_NAME_PATTERN = /^_[a-z0-9_-]{1,62}$/;
+
+/** TXT value: 1–255 printable ASCII characters */
+export const TXT_VALUE_PATTERN = /^[\x20-\x7E]{1,255}$/;
+
+/**
  * Whether a target host is allowlisted (patterns support `*.example.com` suffix matches;
  * `custom` holds exact hosts). See targets.json and docs/PRODUCT-TECH-DESIGN.md 3.4.
  */

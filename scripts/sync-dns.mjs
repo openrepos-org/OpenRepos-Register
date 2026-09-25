@@ -7,13 +7,21 @@
 //
 // Rules:
 //   - Target record: <subdomain>.<domain> CNAME → claim.target
+//   - Optional provider verification record: <txt.name>.<subdomain>.<domain> TXT → claim.txt.value
 //   - Always DNS-only (proxied: false); the target host serves TLS
 //   - Every record this service creates carries comment "openrepos-register"
 //   - Only records carrying that comment are updated/deleted; nothing else is touched
 import { readFileSync } from "node:fs";
 import path from "node:path";
 
-import { domains, isAllowedTarget, readJson, rootDir } from "./lib.mjs";
+import {
+  TXT_NAME_PATTERN,
+  TXT_VALUE_PATTERN,
+  domains,
+  isAllowedTarget,
+  readJson,
+  rootDir,
+} from "./lib.mjs";
 
 const COMMENT = "openrepos-register";
 // Wildcard infrastructure record (unclaimed subdomains → Worker homepage redirect, ADR-0003)
@@ -41,6 +49,18 @@ for (const domain of domains) {
       throw new Error(
         `${subdomain}.${domain}: target "${claim.target}" is not on the targets.json allowlist; refusing to sync`,
       );
+    }
+    if (claim.txt !== undefined) {
+      const validTxt =
+        typeof claim.txt === "object" &&
+        claim.txt !== null &&
+        typeof claim.txt.name === "string" &&
+        TXT_NAME_PATTERN.test(claim.txt.name) &&
+        typeof claim.txt.value === "string" &&
+        TXT_VALUE_PATTERN.test(claim.txt.value);
+      if (!validTxt) {
+        throw new Error(`${subdomain}.${domain}: invalid txt record; refusing to sync`);
+      }
     }
   }
 }
@@ -96,23 +116,51 @@ for (const domain of domains) {
           }),
         });
       }
-      continue;
-    }
-
-    if (existing.comment !== COMMENT) {
+    } else if (existing.comment !== COMMENT) {
       console.log(
         `::warning::${name} already exists and is not managed by OpenRepos (comment mismatch); skipped — confirm manually`,
       );
-      continue;
-    }
-
-    if (existing.content !== claim.target) {
+    } else if (existing.content !== claim.target) {
       changes.push(`~ ${name} → ${claim.target}`);
       if (!dryRun) {
         await cloudflare(`/zones/${zoneId}/dns_records/${existing.id}`, {
           method: "PATCH",
           body: JSON.stringify({ content: claim.target, comment: COMMENT }),
         });
+      }
+    }
+
+    // Optional provider verification TXT record (see docs/PRODUCT-TECH-DESIGN.md 3.2)
+    if (claim.txt) {
+      const txtName = `${claim.txt.name}.${name}`;
+      const existingTxt = byName.get(txtName);
+
+      if (!existingTxt) {
+        changes.push(`+ ${txtName} TXT "${claim.txt.value}"`);
+        if (!dryRun) {
+          await cloudflare(`/zones/${zoneId}/dns_records`, {
+            method: "POST",
+            body: JSON.stringify({
+              type: "TXT",
+              name: txtName,
+              content: claim.txt.value,
+              ttl: 1,
+              comment: COMMENT,
+            }),
+          });
+        }
+      } else if (existingTxt.comment !== COMMENT) {
+        console.log(
+          `::warning::${txtName} already exists and is not managed by OpenRepos (comment mismatch); skipped — confirm manually`,
+        );
+      } else if (existingTxt.content !== claim.txt.value) {
+        changes.push(`~ ${txtName} TXT "${claim.txt.value}"`);
+        if (!dryRun) {
+          await cloudflare(`/zones/${zoneId}/dns_records/${existingTxt.id}`, {
+            method: "PATCH",
+            body: JSON.stringify({ content: claim.txt.value, comment: COMMENT }),
+          });
+        }
       }
     }
   }
@@ -156,7 +204,11 @@ for (const domain of domains) {
   }
 
   if (prune) {
-    const wanted = new Set(Object.keys(bucket).map((subdomain) => `${subdomain}.${domain}`));
+    const wanted = new Set();
+    for (const [subdomain, claim] of Object.entries(bucket)) {
+      wanted.add(`${subdomain}.${domain}`);
+      if (claim.txt?.name) wanted.add(`${claim.txt.name}.${subdomain}.${domain}`);
+    }
     for (const record of records) {
       if (record.comment === COMMENT && !wanted.has(record.name)) {
         changes.push(`- ${record.name} (removed from register.json)`);

@@ -62,15 +62,37 @@ OpenRepos のドメイン上で、あなたのオープンソースプロジェ�
 
 ## フィールド
 
-サブドメインがキーです。各エントリに必要なのは 2 つのフィールドだけです：
+サブドメインがキーです。各エントリには次のフィールドがあります：
 
 | フィールド | 必須 | 説明                                                    |
 | ---------- | ---- | ------------------------------------------------------- |
 | `repo`     | はい | オープンソースプロジェクトの公開 GitHub リポジトリ      |
 | `target`   | はい | CNAME ターゲットホスト（例：`octocat.github.io`）       |
+| `txt`      | いいえ | ホスティング事業者のドメイン検証用 TXT レコード（下記） |
 
 所有権は Pull Request の作成者から検証されるため、`owner` フィールドはありません。
 レコードは DNS-only で、TLS はホスティング事業者が提供します。
+
+### ドメイン検証（TXT）
+
+一部のホスティング事業者は、カスタムドメインを配信する前に TXT レコードを要求します。
+ダッシュボードに表示された値をエントリに追加してください：
+
+```json
+"awesome-project": {
+  "repo": "https://github.com/octocat/awesome-project",
+  "target": "octocat.gitlab.io",
+  "txt": {
+    "name": "_gitlab-pages-verification-code",
+    "value": "gitlab-pages-verification-code=abc123"
+  }
+}
+```
+
+- `name` は事業者が指定するラベル（`_` で始まる必要があります）。作成されるレコードは
+  `<name>.<サブドメイン>.<ドメイン>` の TXT です。
+- `value` は事業者が指定する値そのまま（1〜255 文字の印刷可能な ASCII）。
+- マージ後に自動作成され、`txt` フィールドを削除すると自動的に削除されます。
 
 ## バッジの追加
 
@@ -99,16 +121,16 @@ OpenRepos のドメイン上で、あなたのオープンソースプロジェ�
 
 サブドメインは以下のホスティング事業者のみ指定できます：
 
-| パターン                           | 事業者           |
-| ---------------------------------- | ---------------- |
-| `*.github.io`                      | GitHub Pages     |
-| `*.gitlab.io`                      | GitLab Pages     |
-| `*.pages.dev`                      | Cloudflare Pages |
-| `*.netlify.app`                    | Netlify          |
-| `*.vercel.app`, `*.vercel-dns.com` | Vercel           |
-| `*.surge.sh`                       | Surge            |
-| `*.gitbook.io`, `*.gitbook.com`    | GitBook          |
-| `*.alwaysdata.net`                 | Alwaysdata       |
+| パターン                           | 事業者           | ドメイン検証         |
+| ---------------------------------- | ---------------- | -------------------- |
+| `*.github.io`                      | GitHub Pages     | 不要                 |
+| `*.gitlab.io`                      | GitLab Pages     | **TXT 必須**         |
+| `*.pages.dev`                      | Cloudflare Pages | 不要                 |
+| `*.netlify.app`                    | Netlify          | TXT が必要な場合あり |
+| `*.vercel.app`, `*.vercel-dns.com` | Vercel           | TXT が必要な場合あり |
+| `*.surge.sh`                       | Surge            | 不要                 |
+| `*.gitbook.io`, `*.gitbook.com`    | GitBook          | 不要                 |
+| `*.alwaysdata.net`                 | Alwaysdata       | 不要                 |
 
 別のターゲットが必要な場合は、同じ Pull Request で [`targets.json`](./targets.json) の
 `custom` 配列にホスト名を追加し、理由を書いてください。メンテナーが確認します。
@@ -121,14 +143,14 @@ OpenRepos のドメイン上で、あなたのオープンソースプロジェ�
 
 ## マージ後
 
-- GitHub Action が CNAME レコード `<subdomain>.<domain> → <target>` を作成/更新します
-  （コメント `openrepos-register` 付き）。
+- GitHub Action が CNAME レコード `<subdomain>.<domain> → <target>` を作成/更新し、エントリに
+  `txt` フィールドがあれば対応する TXT レコードも作成します（コメント `openrepos-register` 付き）。
 - 通常 1 分以内に反映されます。DNS-only のため、HTTPS はホスティング事業者が提供します。
 - **ホスティング側でカスタムドメインを設定してください**。設定しないとエラーになります：
   - **GitHub Pages**：リポジトリの Settings → Pages → Custom domain にサブドメインを入力し、**Enforce HTTPS** を有効化
   - **Cloudflare Pages**：プロジェクト → Custom domains → サブドメインを追加（API `POST /accounts/{account_id}/pages/projects/{project}/domains` でも可）。追加するまで `522` を返します
-  - **Vercel / Netlify**：プロジェクト設定でドメインを追加。TXT 検証レコードを求められる場合がありますが、本サービスは未対応です
-  - **GitLab Pages**：プロジェクトの Pages 設定でドメインを追加しますが、GitLab は TXT 検証レコードを要求するため、現時点では公開できません
+  - **Vercel / Netlify**：プロジェクト設定でドメインを追加。TXT 検証を求められたら、その名前と値をエントリの `txt` フィールドに記入してください
+  - **GitLab Pages**：プロジェクトの Pages 設定でドメインを追加。GitLab が表示する TXT レコード（名前は `_gitlab-pages-verification-code`）をエントリの `txt` フィールドに記入してください
   - **Surge / GitBook / Alwaysdata**：各ダッシュボードでカスタムドメインを追加（追加レコードは不要）
 - TLS エラーや `522` は、ホスティング側にカスタムドメインが未設定の場合に起こります。
 

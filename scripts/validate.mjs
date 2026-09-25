@@ -14,6 +14,8 @@ import path from "node:path";
 import {
   SUBDOMAIN_PATTERN,
   TARGET_PATTERN,
+  TXT_NAME_PATTERN,
+  TXT_VALUE_PATTERN,
   domains,
   eachClaim,
   githubApi,
@@ -71,9 +73,9 @@ for (const [domain, subdomain, claim] of eachClaim(register)) {
     continue;
   }
 
-  const allowed = new Set(["repo", "target"]);
+  const allowed = new Set(["repo", "target", "txt"]);
   for (const field of Object.keys(claim)) {
-    if (!allowed.has(field)) error(`${where}: unsupported field "${field}" (only repo / target)`);
+    if (!allowed.has(field)) error(`${where}: unsupported field "${field}" (only repo / target / txt)`);
   }
 
   if (typeof claim.repo !== "string" || !/^https:\/\/github\.com\/[^/]+\/[^/]+$/.test(claim.repo)) {
@@ -93,6 +95,27 @@ for (const [domain, subdomain, claim] of eachClaim(register)) {
       `${where}: target "${claim.target}" is not on the hosting-provider allowlist (see targets.json); ` +
         `for a custom target, add the host to targets.json#custom in this PR with a reason`,
     );
+  }
+
+  if (claim.txt !== undefined) {
+    if (typeof claim.txt !== "object" || claim.txt === null || Array.isArray(claim.txt)) {
+      error(`${where}: txt must be an object with name and value`);
+    } else {
+      for (const field of Object.keys(claim.txt)) {
+        if (!["name", "value"].includes(field)) {
+          error(`${where}: unsupported txt field "${field}" (only name / value)`);
+        }
+      }
+      if (typeof claim.txt.name !== "string" || !TXT_NAME_PATTERN.test(claim.txt.name)) {
+        error(
+          `${where}: txt.name must be a single label starting with "_" ` +
+            `(2–63 chars, a-z0-9_-), e.g. "_gitlab-pages-verification-code"`,
+        );
+      }
+      if (typeof claim.txt.value !== "string" || !TXT_VALUE_PATTERN.test(claim.txt.value)) {
+        error(`${where}: txt.value must be 1–255 printable ASCII characters`);
+      }
+    }
   }
 }
 

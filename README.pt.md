@@ -65,15 +65,37 @@ OpenRepos. Gratuito para sempre, com gestão cuidadosa de longo prazo.
 
 ## Campos
 
-O subdomínio é a chave — cada entrada precisa apenas de dois campos:
+O subdomínio é a chave — cada entrada tem estes campos:
 
 | Campo    | Obrigatório | Descrição                                                   |
 | -------- | ----------- | ----------------------------------------------------------- |
 | `repo`   | sim         | Repositório público no GitHub do seu projeto de código aberto |
 | `target` | sim         | Host de destino do CNAME, ex. `octocat.github.io`           |
+| `txt`    | não         | Registro TXT de verificação do provedor (veja abaixo)       |
 
 A propriedade é verificada pelo autor do pull request, então não existe campo `owner`.
 Os registros são DNS-only, e o provedor de hospedagem fornece o TLS.
+
+### Verificação do provedor (TXT)
+
+Alguns provedores exigem um registro TXT antes de servir o seu domínio personalizado. Copie os
+valores do painel do provedor e adicione-os à sua entrada:
+
+```json
+"awesome-project": {
+  "repo": "https://github.com/octocat/awesome-project",
+  "target": "octocat.gitlab.io",
+  "txt": {
+    "name": "_gitlab-pages-verification-code",
+    "value": "gitlab-pages-verification-code=abc123"
+  }
+}
+```
+
+- `name` é o rótulo indicado pelo provedor (precisa começar com `_`); o registro criado é
+  `<name>.<seu-subdomínio>.<domínio>` TXT.
+- `value` é o valor exato indicado pelo provedor (1–255 caracteres ASCII imprimíveis).
+- É criado automaticamente após o merge e removido quando o campo `txt` é excluído.
 
 ## Adicionar o badge
 
@@ -102,16 +124,16 @@ A URL do badge deve conter o seu subdomínio exato — o CI verifica e rejeita p
 
 Os subdomínios só podem apontar para provedores de hospedagem estabelecidos:
 
-| Padrão                             | Provedor         |
-| ---------------------------------- | ---------------- |
-| `*.github.io`                      | GitHub Pages     |
-| `*.gitlab.io`                      | GitLab Pages     |
-| `*.pages.dev`                      | Cloudflare Pages |
-| `*.netlify.app`                    | Netlify          |
-| `*.vercel.app`, `*.vercel-dns.com` | Vercel           |
-| `*.surge.sh`                       | Surge            |
-| `*.gitbook.io`, `*.gitbook.com`    | GitBook          |
-| `*.alwaysdata.net`                 | Alwaysdata       |
+| Padrão                             | Provedor         | Verificação de domínio   |
+| ---------------------------------- | ---------------- | ------------------------ |
+| `*.github.io`                      | GitHub Pages     | nenhuma                  |
+| `*.gitlab.io`                      | GitLab Pages     | **TXT obrigatório**      |
+| `*.pages.dev`                      | Cloudflare Pages | nenhuma                  |
+| `*.netlify.app`                    | Netlify          | TXT às vezes obrigatório |
+| `*.vercel.app`, `*.vercel-dns.com` | Vercel           | TXT às vezes obrigatório |
+| `*.surge.sh`                       | Surge            | nenhuma                  |
+| `*.gitbook.io`, `*.gitbook.com`    | GitBook          | nenhuma                  |
+| `*.alwaysdata.net`                 | Alwaysdata       | nenhuma                  |
 
 Se o seu projeto precisa de outro destino, adicione o host exato ao array `custom` do
 [`targets.json`](./targets.json) no mesmo pull request e explique o motivo. Um mantenedor vai
@@ -126,15 +148,16 @@ revisar.
 
 ## O que acontece após o merge
 
-- Um GitHub Action cria ou atualiza o registro CNAME `<subdomain>.<domain> → <target>`
-  (com o comentário `openrepos-register`).
-- As mudanças geralmente propagam em um minuto. O registro é DNS-only, então o seu provedor
+- Um GitHub Action cria ou atualiza o registro CNAME `<subdomain>.<domain> → <target>` e, se a
+  sua entrada tiver o campo `txt`, também o registro TXT correspondente (com o comentário
+  `openrepos-register`).
+- As mudanças geralmente propagam em um minuto. Os registros são DNS-only, então o seu provedor
   fornece o HTTPS.
 - **Configure o domínio personalizado no provedor**, senão o subdomínio mostrará erro:
   - **GitHub Pages**: Settings do repositório → Pages → Custom domain → adicione o subdomínio e ative **Enforce HTTPS**
   - **Cloudflare Pages**: projeto → Custom domains → adicione o subdomínio (ou use `POST /accounts/{account_id}/pages/projects/{project}/domains`); o Pages responde `522` até ser adicionado
-  - **Vercel / Netlify**: adicione o domínio nas configurações do projeto; podem pedir um registro TXT de verificação, que este serviço ainda não suporta
-  - **GitLab Pages**: adicione o domínio nas configurações de Pages, mas o GitLab exige um registro TXT de verificação (ainda não suportado), então hoje não é possível publicar
+  - **Vercel / Netlify**: adicione o domínio nas configurações do projeto; se o provedor pedir verificação por TXT, copie o nome e o valor para o campo `txt` da sua entrada
+  - **GitLab Pages**: adicione o domínio nas configurações de Pages; o GitLab mostra um registro TXT (nome `_gitlab-pages-verification-code`) — copie-o para o campo `txt` da sua entrada
   - **Surge / GitBook / Alwaysdata**: adicione o domínio personalizado no painel do provedor; nenhum registro extra é necessário
 - Um erro de TLS ou `522` geralmente significa que o domínio personalizado ainda não foi
   adicionado no provedor.

@@ -48,6 +48,26 @@
           "type": "string",
           "pattern": "^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?(?:\\.[a-z0-9](?:[a-z0-9-]*[a-z0-9])?)+$",
           "description": "CNAME target hostname, e.g. octocat.github.io."
+        },
+        "txt": {
+          "type": "object",
+          "description": "Optional provider verification TXT record; created as <name>.<subdomain>.<domain>.",
+          "required": ["name", "value"],
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "pattern": "^_[a-z0-9_-]{1,62}$",
+              "description": "Single DNS label relative to the claimed subdomain; must start with an underscore."
+            },
+            "value": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 255,
+              "pattern": "^[\\x20-\\x7E]+$",
+              "description": "TXT value supplied by the hosting provider."
+            }
+          }
         }
       }
     }

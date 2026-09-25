@@ -56,14 +56,35 @@
 
 ## 字段
 
-子域名即 key，每条记录只需两个字段：
+子域名即 key，每条记录包含以下字段：
 
 | 字段     | 必填 | 说明                                              |
 | -------- | ---- | ------------------------------------------------- |
 | `repo`   | 是   | 你的开源项目仓库（公开的 GitHub 仓库）            |
 | `target` | 是   | CNAME 目标主机，例如 `octocat.github.io`          |
+| `txt`    | 否   | 托管商域名校验 TXT 记录（见下文）                 |
 
 归属由 PR 作者自动校验，因此没有 `owner` 字段。记录为 DNS-only，由你的托管商提供 TLS。
+
+### 托管商校验（TXT）
+
+部分托管商要求先添加 TXT 记录才会为你的自定义域名提供服务。把托管商后台给出的信息填入条目：
+
+```json
+"awesome-project": {
+  "repo": "https://github.com/octocat/awesome-project",
+  "target": "octocat.gitlab.io",
+  "txt": {
+    "name": "_gitlab-pages-verification-code",
+    "value": "gitlab-pages-verification-code=abc123"
+  }
+}
+```
+
+- `name` 是托管商给出的标签（必须以 `_` 开头）；实际创建的记录是
+  `<name>.<你的子域名>.<域名>` TXT。
+- `value` 是托管商给出的原始值（1–255 个可打印 ASCII 字符）。
+- 合并后自动创建；删除 `txt` 字段后会自动移除。
 
 ## 添加徽章
 
@@ -91,16 +112,16 @@
 
 子域名只能指向以下托管商：
 
-| 模式                               | 托管商           |
-| ---------------------------------- | ---------------- |
-| `*.github.io`                      | GitHub Pages     |
-| `*.gitlab.io`                      | GitLab Pages     |
-| `*.pages.dev`                      | Cloudflare Pages |
-| `*.netlify.app`                    | Netlify          |
-| `*.vercel.app`, `*.vercel-dns.com` | Vercel           |
-| `*.surge.sh`                       | Surge            |
-| `*.gitbook.io`, `*.gitbook.com`    | GitBook          |
-| `*.alwaysdata.net`                 | Alwaysdata       |
+| 模式                               | 托管商           | 域名校验           |
+| ---------------------------------- | ---------------- | ------------------ |
+| `*.github.io`                      | GitHub Pages     | 无需               |
+| `*.gitlab.io`                      | GitLab Pages     | **必须 TXT**       |
+| `*.pages.dev`                      | Cloudflare Pages | 无需               |
+| `*.netlify.app`                    | Netlify          | 有时需要 TXT       |
+| `*.vercel.app`, `*.vercel-dns.com` | Vercel           | 有时需要 TXT       |
+| `*.surge.sh`                       | Surge            | 无需               |
+| `*.gitbook.io`, `*.gitbook.com`    | GitBook          | 无需               |
+| `*.alwaysdata.net`                 | Alwaysdata       | 无需               |
 
 如需其他目标，请在同一个 PR 中把该主机加入 [`targets.json`](./targets.json) 的 `custom`
 数组并说明理由，维护者会进行审核。
@@ -113,14 +134,14 @@
 
 ## 合并之后
 
-- GitHub Action 会创建或更新 CNAME 记录 `<subdomain>.<domain> → <target>`
-  （标记为 `openrepos-register`）。
+- GitHub Action 会创建或更新 CNAME 记录 `<subdomain>.<domain> → <target>`；若条目包含
+  `txt` 字段，也会创建对应的 TXT 记录（均标记为 `openrepos-register`）。
 - 通常一分钟内生效。记录为 DNS-only，因此由你的托管商提供 HTTPS。
 - **请在你的托管平台配置自定义域名**，否则访问会报错：
   - **GitHub Pages**：仓库 Settings → Pages → Custom domain → 填入子域名，然后启用 **Enforce HTTPS**
   - **Cloudflare Pages**：项目 → Custom domains → 添加子域名（或调用 API `POST /accounts/{account_id}/pages/projects/{project}/domains`）；未绑定前会返回 `522`
-  - **Vercel / Netlify**：在项目设置中添加该域名；平台可能要求 TXT 校验记录，目前本服务不支持
-  - **GitLab Pages**：在项目的 Pages 设置中添加域名，但 GitLab 要求 TXT 校验记录（暂不支持），因此目前无法上线
+  - **Vercel / Netlify**：在项目设置中添加该域名；如果平台要求 TXT 校验，把它的名称和值填入条目的 `txt` 字段
+  - **GitLab Pages**：在项目的 Pages 设置中添加域名；GitLab 会给出 TXT 记录（名称为 `_gitlab-pages-verification-code`），把它填入条目的 `txt` 字段
   - **Surge / GitBook / Alwaysdata**：在平台后台添加自定义域名即可，无需额外记录
 - 出现 TLS 错误或 `522`，通常表示托管平台还没有绑定该自定义域名。
 

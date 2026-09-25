@@ -69,9 +69,31 @@ The subdomain is the key — each entry only needs two fields:
 | -------- | -------- | -------------------------------------------------------------------- |
 | `repo`   | yes      | Public GitHub repository of your open source project                 |
 | `target` | yes      | CNAME target host, e.g. `octocat.github.io`                          |
+| `txt`    | no       | Provider verification TXT record (see below)                         |
 
 Ownership is verified from your pull request author, so there is no `owner` field to fill in.
 Records are DNS-only so your host serves TLS.
+
+### Provider verification (TXT)
+
+Some providers require a TXT record before they will serve your custom domain. Add it inside your
+entry — copy both values from the provider's dashboard:
+
+```json
+"awesome-project": {
+  "repo": "https://github.com/octocat/awesome-project",
+  "target": "octocat.gitlab.io",
+  "txt": {
+    "name": "_gitlab-pages-verification-code",
+    "value": "gitlab-pages-verification-code=abc123"
+  }
+}
+```
+
+- `name` is the label the provider gives you; it must start with `_`. The record created is
+  `<name>.<your-subdomain>.<domain>` TXT.
+- `value` is the exact value the provider gives you (1–255 printable ASCII characters).
+- The record is created automatically after merge and removed when you delete the `txt` field.
 
 ## Add the badge
 
@@ -100,16 +122,16 @@ The badge URL must reference your exact subdomain — CI checks for it and rejec
 
 Subdomains may only point at established hosting providers:
 
-| Pattern                            | Provider         |
-| ---------------------------------- | ---------------- |
-| `*.github.io`                      | GitHub Pages     |
-| `*.gitlab.io`                      | GitLab Pages     |
-| `*.pages.dev`                      | Cloudflare Pages |
-| `*.netlify.app`                    | Netlify          |
-| `*.vercel.app`, `*.vercel-dns.com` | Vercel           |
-| `*.surge.sh`                       | Surge            |
-| `*.gitbook.io`, `*.gitbook.com`    | GitBook          |
-| `*.alwaysdata.net`                 | Alwaysdata       |
+| Pattern                            | Provider         | Domain verification      |
+| ---------------------------------- | ---------------- | ------------------------ |
+| `*.github.io`                      | GitHub Pages     | none                     |
+| `*.gitlab.io`                      | GitLab Pages     | **TXT required**         |
+| `*.pages.dev`                      | Cloudflare Pages | none                     |
+| `*.netlify.app`                    | Netlify          | TXT sometimes required   |
+| `*.vercel.app`, `*.vercel-dns.com` | Vercel           | TXT sometimes required   |
+| `*.surge.sh`                       | Surge            | none                     |
+| `*.gitbook.io`, `*.gitbook.com`    | GitBook          | none                     |
+| `*.alwaysdata.net`                 | Alwaysdata       | none                     |
 
 If your project needs a different target, add the exact hostname to the `custom` array in
 [`targets.json`](./targets.json) in the same pull request and explain why. A maintainer will
@@ -123,16 +145,17 @@ review it.
 
 ## What happens after merge
 
-- A GitHub Action creates or updates a CNAME record `<subdomain>.<domain> → <target>`
-  (tagged with the comment `openrepos-register`).
-- Changes usually propagate within a minute. The record is DNS-only, so your hosting provider
+- A GitHub Action creates or updates a CNAME record `<subdomain>.<domain> → <target>` and, when
+  your entry has a `txt` field, the matching TXT record (all tagged with the comment
+  `openrepos-register`).
+- Changes usually propagate within a minute. Records are DNS-only, so your hosting provider
   serves HTTPS.
 - **Configure the custom domain at your host** before or right after merge, otherwise the
   subdomain will show an error:
   - **GitHub Pages**: repository Settings → Pages → Custom domain → add your subdomain, then enable **Enforce HTTPS**
   - **Cloudflare Pages**: project → Custom domains → add your subdomain (or call `POST /accounts/{account_id}/pages/projects/{project}/domains`); Pages answers `522` until it is added
-  - **Vercel / Netlify**: add the domain in the project settings; these may ask for a TXT verification record, which this service does not support yet
-  - **GitLab Pages**: add the domain in the project Pages settings, but GitLab requires a TXT verification record — not supported yet, so GitLab Pages cannot go live today
+  - **Vercel / Netlify**: add the domain in the project settings; if the provider asks you to verify with a TXT record, copy its name and value into the `txt` field of your entry
+  - **GitLab Pages**: add the domain in the project's Pages settings; GitLab shows a TXT record (name `_gitlab-pages-verification-code`) — copy it into the `txt` field of your entry
   - **Surge / GitBook / Alwaysdata**: add the custom domain in the provider dashboard; no extra records needed
 - A TLS error or a `522` usually means the custom domain has not been added at the host yet.
 
