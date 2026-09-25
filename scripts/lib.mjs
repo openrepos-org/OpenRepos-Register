@@ -19,6 +19,23 @@ export const SUBDOMAIN_PATTERN = /^[a-z0-9](?:[a-z0-9-]{1,61}[a-z0-9])$/;
 /** 主机名（CNAME 目标） */
 export const TARGET_PATTERN = /^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]*[a-z0-9])?)+$/;
 
+/**
+ * 目标主机是否在白名单内（patterns 支持 `*.example.com` 后缀匹配，custom 为精确主机）。
+ * 见 targets.json 与 docs/PRODUCT-TECH-DESIGN.md 3.4。
+ */
+export function isAllowedTarget(target, targets) {
+  const value = String(target).toLowerCase();
+  if ((targets.custom ?? []).some((host) => host.toLowerCase() === value)) return true;
+  return (targets.patterns ?? []).some((pattern) => {
+    const normalized = pattern.toLowerCase();
+    if (normalized.startsWith("*.")) {
+      const suffix = normalized.slice(1); // ".example.com"
+      return value.endsWith(suffix) && value.length > suffix.length;
+    }
+    return value === normalized;
+  });
+}
+
 /** 归一化仓库 URL，用于跨域名唯一性判断 */
 export function normalizeRepo(repo) {
   return repo.trim().toLowerCase().replace(/\.git$/, "").replace(/\/+$/, "");

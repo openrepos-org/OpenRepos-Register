@@ -1,0 +1,15 @@
+{
+  "patterns": [
+    "*.github.io",
+    "*.gitlab.io",
+    "*.pages.dev",
+    "*.netlify.app",
+    "*.vercel.app",
+    "*.vercel-dns.com",
+    "*.surge.sh",
+    "*.gitbook.io",
+    "*.gitbook.com",
+    "*.alwaysdata.net"
+  ],
+  "custom": []
+}

@@ -22,4 +22,5 @@
 - [ ] I opened this pull request from the account that owns the project repository, or as a member of its organization.
 - [ ] The project is open source (public repository with a LICENSE).
 - [ ] The target host is already configured to serve my project.
+- [ ] The target is on the allowed provider list, or I added it to `targets.json#custom` with a reason.
 - [ ] This project is not claimed on any other OpenRepos domain.

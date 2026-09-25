@@ -13,7 +13,7 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
 
-import { domains, rootDir } from "./lib.mjs";
+import { domains, isAllowedTarget, readJson, rootDir } from "./lib.mjs";
 
 const COMMENT = "openrepos-register";
 const args = process.argv.slice(2);
@@ -27,7 +27,19 @@ if (!token) {
 }
 
 const register = JSON.parse(readFileSync(path.join(rootDir, "register.json"), "utf8"));
+const targets = readJson("targets.json");
 const changes = [];
+
+// 双重防线：main 上若出现白名单外的目标（绕过 PR 校验），直接失败而不是写入 DNS
+for (const domain of domains) {
+  for (const [subdomain, claim] of Object.entries(register[domain] ?? {})) {
+    if (!isAllowedTarget(claim.target, targets)) {
+      throw new Error(
+        `${subdomain}.${domain} 的 target「${claim.target}」不在 targets.json 白名单内，拒绝同步`,
+      );
+    }
+  }
+}
 
 async function cloudflare(pathname, init = {}) {
   const response = await fetch(`https://api.cloudflare.com/client/v4${pathname}`, {

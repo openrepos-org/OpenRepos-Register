@@ -23,7 +23,11 @@ All claims live in a single file: [`register.json`](./register.json).
    than one OpenRepos domain.
 4. Subdomain names: 3–63 characters, lowercase `a-z`, `0-9`, `-`; must not start or end with `-`.
 5. Reserved names cannot be claimed — see [`reserved.json`](./reserved.json).
-6. You are responsible for the content served under your subdomain. Abusive subdomains can be removed.
+6. Targets must be one of the allowed hosting providers (see below); custom targets need
+   maintainer approval.
+7. You are responsible for the content served under your subdomain. Content rules apply:
+   keep it about your open source project, no automatic redirects away, no NSFW/adult content.
+   Abusive subdomains can be removed.
 
 ## How to claim
 
@@ -57,8 +61,32 @@ The subdomain is the key — each entry only needs two fields:
 
 Ownership is verified from your pull request author, so there is no `owner` field to fill in.
 
-`target` can point at GitHub Pages, Cloudflare Pages, Vercel, Netlify, or your own server —
-anything that serves HTTP(S). Records are DNS-only so your host serves TLS.
+Records are DNS-only so your host serves TLS.
+
+## Allowed targets
+
+Subdomains may only point at established hosting providers:
+
+| Pattern                        | Provider        |
+| ------------------------------ | --------------- |
+| `*.github.io`                  | GitHub Pages    |
+| `*.gitlab.io`                  | GitLab Pages    |
+| `*.pages.dev`                  | Cloudflare Pages |
+| `*.netlify.app`                | Netlify         |
+| `*.vercel.app`, `*.vercel-dns.com` | Vercel      |
+| `*.surge.sh`                   | Surge           |
+| `*.gitbook.io`, `*.gitbook.com` | GitBook        |
+| `*.alwaysdata.net`             | Alwaysdata      |
+
+If your project needs a different target, add the exact hostname to the `custom` array in
+[`targets.json`](./targets.json) in the same pull request and explain why. A maintainer will
+review it.
+
+## Content rules
+
+- Serve content about the claimed open source project — no unrelated content.
+- No automatic redirects away from the subdomain; redirects must require user interaction.
+- No NSFW/adult content, phishing, malware, or other abuse.
 
 ## What happens after merge
 

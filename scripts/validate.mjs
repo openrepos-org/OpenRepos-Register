@@ -16,10 +16,14 @@ import {
   domains,
   eachClaim,
   githubApi,
+  isAllowedTarget,
   normalizeRepo,
+  readJson,
   reserved,
   rootDir,
 } from "./lib.mjs";
+
+const targets = readJson("targets.json");
 
 const errors = [];
 const warnings = [];
@@ -82,6 +86,11 @@ for (const [domain, subdomain, claim] of eachClaim(register)) {
   }
   if (typeof claim.target !== "string" || !TARGET_PATTERN.test(claim.target)) {
     error(`${where}：target 不是合法主机名`);
+  } else if (!isAllowedTarget(claim.target, targets)) {
+    error(
+      `${where}：target「${claim.target}」不在托管商白名单内（见 targets.json）；` +
+        `如需自定义目标，请在本 PR 中把该主机加入 targets.json#custom 并说明理由`,
+    );
   }
 }
 
