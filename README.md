@@ -157,3 +157,11 @@ abuse. To report abuse or request removal, open an issue in this repository.
 ## License
 
 [MIT](./LICENSE)
+
+---
+
+# <img src="./assets/logo.svg" width="28" height="28" alt="logo" /> Baseline variant
+
+# <img src="./assets/logo.svg" width="28" height="28" align="top" alt="logo" /> Top variant
+
+# <img src="./assets/logo.svg" width="28" height="28" align="middle" alt="logo" /> Middle variant
