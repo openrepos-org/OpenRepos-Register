@@ -7,7 +7,7 @@
 //
 // 规则：
 //   - 目标记录：<subdomain>.<domain> CNAME → claim.target
-//   - proxied 默认 false（由目标主机提供 TLS），claim.proxied 可覆盖
+//   - 一律 DNS-only（proxied: false），由目标主机提供 TLS
 //   - 所有由本服务创建的记录都带 comment「openrepos-register」
 //   - 仅更新/删除带该 comment 的记录，绝不触碰其他记录
 import { readFileSync } from "node:fs";
@@ -63,11 +63,10 @@ for (const domain of domains) {
 
   for (const [subdomain, claim] of Object.entries(bucket)) {
     const name = `${subdomain}.${domain}`;
-    const proxied = claim.proxied ?? false;
     const existing = byName.get(name);
 
     if (!existing) {
-      changes.push(`+ ${name} → ${claim.target}${proxied ? " (proxied)" : ""}`);
+      changes.push(`+ ${name} → ${claim.target}`);
       if (!dryRun) {
         await cloudflare(`/zones/${zoneId}/dns_records`, {
           method: "POST",
@@ -75,7 +74,7 @@ for (const domain of domains) {
             type: "CNAME",
             name,
             content: claim.target,
-            proxied,
+            proxied: false,
             ttl: 1,
             comment: COMMENT,
           }),
@@ -91,12 +90,12 @@ for (const domain of domains) {
       continue;
     }
 
-    if (existing.content !== claim.target || existing.proxied !== proxied) {
-      changes.push(`~ ${name} → ${claim.target}${proxied ? " (proxied)" : ""}`);
+    if (existing.content !== claim.target) {
+      changes.push(`~ ${name} → ${claim.target}`);
       if (!dryRun) {
         await cloudflare(`/zones/${zoneId}/dns_records/${existing.id}`, {
           method: "PATCH",
-          body: JSON.stringify({ content: claim.target, proxied, comment: COMMENT }),
+          body: JSON.stringify({ content: claim.target, comment: COMMENT }),
         });
       }
     }

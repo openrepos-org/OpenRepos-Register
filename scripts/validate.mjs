@@ -11,7 +11,6 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 
 import {
-  OWNER_PATTERN,
   SUBDOMAIN_PATTERN,
   TARGET_PATTERN,
   domains,
@@ -66,14 +65,11 @@ for (const [domain, subdomain, claim] of eachClaim(register)) {
     continue;
   }
 
-  const allowed = new Set(["owner", "repo", "target", "description", "proxied"]);
+  const allowed = new Set(["repo", "target"]);
   for (const field of Object.keys(claim)) {
-    if (!allowed.has(field)) error(`${where}：不支持的字段「${field}」`);
+    if (!allowed.has(field)) error(`${where}：不支持的字段「${field}」（只允许 repo / target）`);
   }
 
-  if (typeof claim.owner !== "string" || !OWNER_PATTERN.test(claim.owner)) {
-    error(`${where}：owner 不是合法 GitHub 用户名`);
-  }
   if (typeof claim.repo !== "string" || !/^https:\/\/github\.com\/[^/]+\/[^/]+$/.test(claim.repo)) {
     error(`${where}：repo 必须是 https://github.com/<owner>/<repo>`);
   } else {
@@ -87,21 +83,13 @@ for (const [domain, subdomain, claim] of eachClaim(register)) {
   if (typeof claim.target !== "string" || !TARGET_PATTERN.test(claim.target)) {
     error(`${where}：target 不是合法主机名`);
   }
-  if (
-    claim.description !== undefined &&
-    (typeof claim.description !== "string" || claim.description.length > 200)
-  ) {
-    error(`${where}：description 必须是 ≤200 字符的字符串`);
-  }
-  if (claim.proxied !== undefined && typeof claim.proxied !== "boolean") {
-    error(`${where}：proxied 必须是布尔值`);
-  }
 }
 
-// 3) 归属校验（需要 GITHUB_TOKEN；只检查相对 base 发生变更的 claim）
+// 3) 归属校验（需要 GITHUB_TOKEN + PR_AUTHOR；只检查相对 base 发生变更的 claim）
+//    owner 字段已移除：归属由「PR 作者是 repo 所有者/组织成员」自动判定。
 const token = process.env.GITHUB_TOKEN;
 const prAuthor = process.env.PR_AUTHOR ?? "";
-if (token) {
+if (token && prAuthor) {
   const base = loadBaseRegister();
   const changed = claims.filter(([domain, subdomain, claim]) => {
     if (!base) return true;
@@ -114,6 +102,8 @@ if (token) {
       await verifyOwnership(domain, subdomain, claim, token, prAuthor);
     }
   }
+} else if (token) {
+  warn("缺少 PR_AUTHOR，跳过归属校验（CI 中由 workflow 提供）");
 } else {
   warn("未提供 GITHUB_TOKEN，跳过归属校验（CI 中会自动启用）");
 }
@@ -151,13 +141,18 @@ async function verifyOwnership(domain, subdomain, claim, token, prAuthor) {
   if (data.private) error(`${where}：项目仓库必须是公开仓库`);
   if (data.archived) error(`${where}：项目仓库已归档`);
   if (!data.license) error(`${where}：项目仓库缺少 LICENSE（必须是开源项目）`);
-  if (String(data.owner?.login ?? "").toLowerCase() !== String(claim.owner).toLowerCase()) {
-    error(`${where}：owner「${claim.owner}」与仓库所有者「${data.owner?.login}」不一致`);
-  }
-  if (prAuthor && prAuthor.toLowerCase() !== String(claim.owner).toLowerCase()) {
-    const membership = await githubApi(`/orgs/${data.owner?.login}/members/${prAuthor}`, token);
-    if (membership.status !== 204) {
-      warn(`${where}：PR 作者「${prAuthor}」既不是 owner 也不是其组织成员，请人工确认`);
+
+  // 归属：PR 作者必须是仓库所有者，或该组织的成员
+  const repoOwner = String(data.owner?.login ?? "");
+  if (prAuthor.toLowerCase() !== repoOwner.toLowerCase()) {
+    const membership = await githubApi(`/orgs/${repoOwner}/members/${prAuthor}`, token);
+    if (membership.status === 204) return;
+    if (membership.status === 404) {
+      error(`${where}：PR 作者「${prAuthor}」不是仓库「${data.full_name}」的所有者或组织成员`);
+    } else {
+      warn(
+        `${where}：无法确认 PR 作者「${prAuthor}」与「${repoOwner}」的组织关系（GitHub API ${membership.status}），请人工确认`,
+      );
     }
   }
 }

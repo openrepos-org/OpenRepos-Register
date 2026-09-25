@@ -35,14 +35,10 @@
     },
     "claim": {
       "type": "object",
-      "required": ["owner", "repo", "target"],
+      "description": "A claim. Ownership is verified from the pull request author, so no owner field is needed.",
+      "required": ["repo", "target"],
       "additionalProperties": false,
       "properties": {
-        "owner": {
-          "type": "string",
-          "pattern": "^[a-zA-Z0-9](?:[a-zA-Z0-9]|-(?=[a-zA-Z0-9])){0,38}$",
-          "description": "GitHub username of the project owner."
-        },
         "repo": {
           "type": "string",
           "pattern": "^https://github\\.com/[^/]+/[^/]+$",
@@ -52,15 +48,6 @@
           "type": "string",
           "pattern": "^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?(?:\\.[a-z0-9](?:[a-z0-9-]*[a-z0-9])?)+$",
           "description": "CNAME target hostname, e.g. octocat.github.io."
-        },
-        "description": {
-          "type": "string",
-          "maxLength": 200
-        },
-        "proxied": {
-          "type": "boolean",
-          "default": false,
-          "description": "Route through the Cloudflare proxy. Default false so the target host serves TLS."
         }
       }
     }

@@ -16,9 +16,6 @@ export const reserved = new Set(readJson("reserved.json").reserved.map((name) =>
 /** subdomain：3–63 位，仅 a-z0-9-，不以 - 开头/结尾（小写） */
 export const SUBDOMAIN_PATTERN = /^[a-z0-9](?:[a-z0-9-]{1,61}[a-z0-9])$/;
 
-/** GitHub 用户名 */
-export const OWNER_PATTERN = /^[a-zA-Z0-9](?:[a-zA-Z0-9]|-(?=[a-zA-Z0-9])){0,38}$/;
-
 /** 主机名（CNAME 目标） */
 export const TARGET_PATTERN = /^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]*[a-z0-9])?)+$/;
 

@@ -17,11 +17,13 @@ All claims live in a single file: [`register.json`](./register.json).
 ## Rules
 
 1. **Free forever**, for open source projects only (a public GitHub repository with a LICENSE).
-2. **One subdomain per project, on exactly one domain** — a project may not be claimed on more
+2. **You must own the project repository**, or be a member of the organization that owns it.
+   CI verifies this from your pull request author.
+3. **One subdomain per project, on exactly one domain** — a project may not be claimed on more
    than one OpenRepos domain.
-3. Subdomain names: 3–63 characters, lowercase `a-z`, `0-9`, `-`; must not start or end with `-`.
-4. Reserved names cannot be claimed — see [`reserved.json`](./reserved.json).
-5. You are responsible for the content served under your subdomain. Abusive subdomains can be removed.
+4. Subdomain names: 3–63 characters, lowercase `a-z`, `0-9`, `-`; must not start or end with `-`.
+5. Reserved names cannot be claimed — see [`reserved.json`](./reserved.json).
+6. You are responsible for the content served under your subdomain. Abusive subdomains can be removed.
 
 ## How to claim
 
@@ -31,7 +33,6 @@ All claims live in a single file: [`register.json`](./register.json).
    ```json
    "openrepos.io": {
      "awesome-project": {
-       "owner": "octocat",
        "repo": "https://github.com/octocat/awesome-project",
        "target": "octocat.github.io"
      }
@@ -47,17 +48,17 @@ All claims live in a single file: [`register.json`](./register.json).
 
 ## Fields
 
-| Field         | Required | Description                                                              |
-| ------------- | -------- | ------------------------------------------------------------------------ |
-| `owner`       | yes      | Your GitHub username; must own (or be a member of the org that owns) `repo` |
-| `repo`        | yes      | Public GitHub repository of your open source project                     |
-| `target`      | yes      | CNAME target host, e.g. `octocat.github.io`                              |
-| `description` | no       | Short project description (≤ 200 characters)                             |
-| `proxied`     | no       | Route through the Cloudflare proxy. Default `false`                      |
+The subdomain is the key — each entry only needs two fields:
+
+| Field    | Required | Description                                                          |
+| -------- | -------- | -------------------------------------------------------------------- |
+| `repo`   | yes      | Public GitHub repository of your open source project                 |
+| `target` | yes      | CNAME target host, e.g. `octocat.github.io`                          |
+
+Ownership is verified from your pull request author, so there is no `owner` field to fill in.
 
 `target` can point at GitHub Pages, Cloudflare Pages, Vercel, Netlify, or your own server —
-anything that serves HTTP(S). By default the record is DNS-only (`proxied: false`) so your host
-serves TLS; set `"proxied": true` to use Cloudflare's proxy instead.
+anything that serves HTTP(S). Records are DNS-only so your host serves TLS.
 
 ## What happens after merge
 
