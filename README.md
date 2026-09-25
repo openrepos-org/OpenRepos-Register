@@ -1,4 +1,4 @@
-# <img src="./assets/logo.svg" width="32" height="32" align="middle" alt="OpenRepos logo" /> OpenRepos Register
+# <img src="./assets/logo.svg" width="28" height="28" alt="OpenRepos logo" /> OpenRepos Register
 
 **English** · [简体中文](./README.zh-CN.md) · [日本語](./README.ja.md) · [العربية](./README.ar.md) · [Español](./README.es.md) · [Português](./README.pt.md)
 
@@ -157,11 +157,3 @@ abuse. To report abuse or request removal, open an issue in this repository.
 ## License
 
 [MIT](./LICENSE)
-
----
-
-# <img src="./assets/logo.svg" width="28" height="28" alt="logo" /> Baseline variant
-
-# <img src="./assets/logo.svg" width="28" height="28" align="top" alt="logo" /> Top variant
-
-# <img src="./assets/logo.svg" width="28" height="28" align="middle" alt="logo" /> Middle variant
